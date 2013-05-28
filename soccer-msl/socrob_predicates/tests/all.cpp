@@ -42,7 +42,7 @@ int
 main (int argc,
       char* argv[])
 {
-  ros::init (argc, argv, "predicates");
+  ros::init (argc, argv, "test_all");
   
   TestTopicGenerator ttg;
   
