@@ -1,0 +1,3 @@
+<launch>
+  <node pkg="socrob_predicates" type="test_all" name="test_all" required="true"/>
+</launch>
