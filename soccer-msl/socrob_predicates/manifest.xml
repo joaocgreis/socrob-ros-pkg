@@ -1,0 +1,14 @@
+<package>
+  <description brief="SocRobPredicates">
+    SocRob predicate library
+  </description>
+  <author>João Reis/jreis@isr.ist.utl.pt</author>
+  <license>LGPL</license>
+  <!--<review status="unreviewed" notes=""/>-->
+  <!--<url>http://ros.org/wiki/socrob_predicates</url>-->
+  <export>
+    <cpp cflags="-I${prefix}/include"
+         lflags="-L${prefix}/lib -Wl,-rpath,${prefix}/lib -lsocrob_predicates"/>
+  </export>
+  <depend package="roscpp"/>
+</package>
