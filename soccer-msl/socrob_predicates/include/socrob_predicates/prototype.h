@@ -60,6 +60,8 @@ namespace socrob
       
       
       PredicateController (PredicateManager* pm, Predicate* p);
+      
+      void name (string const& name);
     };
     
     
@@ -142,6 +144,19 @@ namespace socrob
     
     
     
+    inline void
+    PredicateController::
+    name (const string& name)
+    {
+      named_ = true;
+      name_ = name;
+      id_ = pm_->getNextId();
+      pm_->update_predicate_info_map();
+    }
+    
+    
+    
+    
     inline RunningPredicate::RunningPredicate (PredicateController* pc) :
       pc_ (pc)
     {
@@ -153,10 +168,7 @@ namespace socrob
     RunningPredicate::
     name (const string& name)
     {
-      pc_->named_ = true;
-      pc_->name_ = name;
-      pc_->id_ = pc_->pm_->getNextId();
-      pc_->pm_->update_predicate_info_map();
+      pc_->name (name);
       return *this;
     }
   }
