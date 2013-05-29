@@ -17,7 +17,11 @@ class PeriodicNegative :
     PeriodicNegative() {
     }
     
-    bool state() {
+  public:
+  
+    static RunningPredicate
+    build (PredicateManager* pm) {
+      return pm->add (new PeriodicNegative);
     }
 };
 
@@ -28,8 +32,8 @@ class PredicateTester :
 {
   public:
     PredicateTester() {
+      /*RunningPredicate peiodicNegative =*/ PeriodicNegative::build (this).name ("PeiodicNegative");
       /*
-      RP peiodicNegative = add<PeriodicNegative>().name ("PeiodicNegative");
       peiodicNegative->event_rise ("BallOurSide");
       peiodicNegative->event_fall ("BallTheirSide");
       */

@@ -17,8 +17,8 @@ rosbuild_genmsg()
 #rosbuild_add_boost_directories()
 
 # Library
-file(GLOB_RECURSE PROJECT_SOURCES src/*.cpp)
-rosbuild_add_library(${PROJECT_NAME} ${PROJECT_SOURCES})
+#file(GLOB_RECURSE PROJECT_SOURCES src/*.cpp)
+#rosbuild_add_library(${PROJECT_NAME} ${PROJECT_SOURCES})
 #target_link_libraries(${PROJECT_NAME} another_library)
 #rosbuild_link_boost(${PROJECT_NAME} system thread)
 
@@ -27,5 +27,5 @@ file(GLOB_RECURSE TEST_SOURCES tests/*.cpp)
 foreach(TEST_SOURCE_FILE ${TEST_SOURCES})
   get_filename_component(TEST_BASENAME ${TEST_SOURCE_FILE} NAME_WE)
   rosbuild_add_executable(test_${TEST_BASENAME} ${TEST_SOURCE_FILE})
-  target_link_libraries(test_${TEST_BASENAME} ${PROJECT_NAME})
+#  target_link_libraries(test_${TEST_BASENAME} ${PROJECT_NAME})
 endforeach()
