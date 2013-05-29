@@ -36,6 +36,7 @@ namespace socrob
       ros::NodeHandle nh_;
       ros::Publisher predicate_info_map_pub_;
       
+      uint32_t next_id_;
       vector<PredicateController*> predicates_;
       
       
@@ -44,6 +45,7 @@ namespace socrob
       RunningPredicate add (Predicate* p);
       
       void update_predicate_info_map();
+      uint32_t getNextId();
     };
     
     
@@ -77,7 +79,8 @@ namespace socrob
     PredicateManager::
     PredicateManager() :
       nh_(),
-      predicate_info_map_pub_ (nh_.advertise<socrob_predicates::PredicateInfoMap> ("predicate_info_map", 1, true))
+      predicate_info_map_pub_ (nh_.advertise<socrob_predicates::PredicateInfoMap> ("predicate_info_map", 1, true)),
+      next_id_()
     {
       ROS_DEBUG_STREAM ("Initializing PredicateManager");
     }
@@ -102,11 +105,10 @@ namespace socrob
       socrob_predicates::PredicateInfoMap::Ptr msg = boost::make_shared<socrob_predicates::PredicateInfoMap>();
       msg->header.stamp = ros::Time::now();
       
-      uint32_t id = 0;
       foreach (PredicateController * pc, predicates_) {
         if (pc->named_) {
           socrob_predicates::PredicateInfo pi;
-          pi.id = pc->id_ = id++;
+          pi.id = pc->id_;
           pi.name = pc->name_;
           ROS_DEBUG_STREAM ("update_predicate_info_map: Adding \"" << pi.name << "\" with id " << pi.id);
           msg->map.push_back (pi);
@@ -114,6 +116,15 @@ namespace socrob
       }
       
       predicate_info_map_pub_.publish (msg);
+    }
+    
+    
+    
+    inline uint32_t
+    PredicateManager::
+    getNextId()
+    {
+      return next_id_++;
     }
     
     
@@ -144,6 +155,7 @@ namespace socrob
     {
       pc_->named_ = true;
       pc_->name_ = name;
+      pc_->id_ = pc_->pm_->getNextId();
       pc_->pm_->update_predicate_info_map();
       return *this;
     }
