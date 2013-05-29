@@ -33,23 +33,6 @@ namespace socrob
     
     
     
-    struct PredicateManager {
-      ros::NodeHandle nh_;
-      ros::Publisher predicate_info_map_pub_;
-      
-      uint32_t next_id_;
-      vector<PredicateController*> predicates_;
-      
-      
-      PredicateManager();
-      
-      RunningPredicate add (PredicateOptions p);
-      
-      void update_predicate_info_map();
-      uint32_t getNextId();
-    };
-    
-    
     struct CallbackOptionsBase {};
     
     struct SubscriberOptionsBase {};
@@ -69,6 +52,24 @@ namespace socrob
       bool always_run_update;
       
       vector<SubscriberOptionsBase*> subscriptions;
+    };
+    
+    
+    
+    struct PredicateManager {
+      ros::NodeHandle nh_;
+      ros::Publisher predicate_info_map_pub_;
+      
+      uint32_t next_id_;
+      vector<PredicateController*> predicates_;
+      
+      
+      PredicateManager();
+      
+      RunningPredicate add (PredicateOptions p);
+      
+      void update_predicate_info_map();
+      uint32_t getNextId();
     };
     
     
