@@ -21,6 +21,7 @@ namespace socrob
     
     class Predicate;
     struct PredicateManager;
+    struct PredicateOptions;
     struct PredicateController;
     struct RunningPredicate;
     
@@ -42,10 +43,16 @@ namespace socrob
       
       PredicateManager();
       
-      RunningPredicate add (Predicate* p);
+      RunningPredicate add (PredicateOptions p);
       
       void update_predicate_info_map();
       uint32_t getNextId();
+    };
+    
+    
+    
+    struct PredicateOptions {
+      Predicate* p;
     };
     
     
@@ -91,9 +98,9 @@ namespace socrob
     
     inline RunningPredicate
     PredicateManager::
-    add (Predicate* p)
+    add (PredicateOptions options)
     {
-      PredicateController* pc = new PredicateController (this, p);
+      PredicateController* pc = new PredicateController (this, options.p);
       predicates_.push_back (pc);
       return RunningPredicate (pc);
     }

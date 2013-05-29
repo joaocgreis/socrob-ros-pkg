@@ -21,7 +21,9 @@ class PeriodicNegative :
   
     static RunningPredicate
     build (PredicateManager* pm) {
-      return pm->add (new PeriodicNegative);
+      PredicateOptions options;
+      options.p = new PeriodicNegative();
+      return pm->add (options);
     }
 };
 
