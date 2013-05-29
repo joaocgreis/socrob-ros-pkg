@@ -20,16 +20,7 @@ namespace socrob
   {
     using namespace std;
     
-    class Predicate;
-    struct PredicateManager;
-    struct PredicateController;
-    struct RunningPredicate;
-    
-    
-    
-    class Predicate
-    {
-    };
+    typedef unsigned int RunningPredicate;
     
     
     
@@ -45,7 +36,7 @@ namespace socrob
     };
     
     struct PredicateOptions {
-      Predicate* p;
+      // Predicate* p;
       bool initial_value;
       
       boost::function<bool() > update;
@@ -56,151 +47,67 @@ namespace socrob
     
     
     
-    struct PredicateManager {
-      ros::NodeHandle nh_;
-      ros::Publisher predicate_info_map_pub_;
-      
-      uint32_t next_id_;
-      vector<PredicateController*> predicates_;
-      
-      
-      PredicateManager();
-      
-      RunningPredicate add (PredicateOptions p);
-      
-      void update_predicate_info_map();
-      uint32_t getNextId();
-    };
+    ros::Publisher predicate_info_map_pub_;
     
-    
-    
-    struct PredicateController {
-      PredicateManager* pm_;
-      Predicate* p_;
-      
-      bool value_;
-      
-      bool named_;
-      string name_;
-      uint32_t id_;
-      
-      boost::function<bool() > update;
-      bool always_run_update;
-      
-      PredicateController (PredicateManager* pm, Predicate* p);
-      
-      void name (string const& name);
-    };
-    
-    
-    
-    struct RunningPredicate {
-      PredicateController* pc_;
-      
-      
-      RunningPredicate (PredicateController* pc);
-      
-      RunningPredicate name (string const& name);
-    };
-    
-    
-    
-    inline
-    PredicateManager::
-    PredicateManager() :
-      nh_(),
-      predicate_info_map_pub_ (nh_.advertise<socrob_predicates::PredicateInfoMap> ("predicate_info_map", 1, true)),
-      next_id_()
+    void init (ros::NodeHandle& nh)
     {
-      ROS_DEBUG_STREAM ("Initializing PredicateManager");
+      predicate_info_map_pub_ = nh.advertise<socrob_predicates::PredicateInfoMap> ("predicate_info_map", 1, true);
     }
     
     
     
-    inline RunningPredicate
-    PredicateManager::
-    add (PredicateOptions options)
-    {
-      PredicateController* pc = new PredicateController (this, options.p);
-      pc->value_ = options.initial_value;
-      pc->update = options.update;
-      pc->always_run_update = options.always_run_update;
-      predicates_.push_back (pc);
-      return RunningPredicate (pc);
-    }
-    
-    
-    
-    inline void
-    PredicateManager::
-    update_predicate_info_map()
-    {
-      socrob_predicates::PredicateInfoMap::Ptr msg = boost::make_shared<socrob_predicates::PredicateInfoMap>();
-      msg->header.stamp = ros::Time::now();
-      
-      foreach (PredicateController * pc, predicates_) {
-        if (pc->named_) {
-          socrob_predicates::PredicateInfo pi;
-          pi.id = pc->id_;
-          pi.name = pc->name_;
-          ROS_DEBUG_STREAM ("update_predicate_info_map: Adding \"" << pi.name << "\" with id " << pi.id);
-          msg->map.push_back (pi);
-        }
-      }
-      
-      predicate_info_map_pub_.publish (msg);
-    }
-    
-    
-    
-    inline uint32_t
-    PredicateManager::
-    getNextId()
+    uint32_t next_id_;
+    uint32_t getNextId()
     {
       return next_id_++;
     }
     
     
     
-    inline
-    PredicateController::
-    PredicateController (PredicateManager* pm, Predicate* p) :
-      pm_ (pm),
-      p_ (p),
-      named_ (false),
-      name_(),
-      id_()
+    vector<bool> value_;
+    
+    vector<bool> named_;
+    vector<string> name_;
+    vector<uint32_t> pub_id_;
+    
+    vector<boost::function<bool() > > update_;
+    vector<bool> always_run_update_;
+    
+    RunningPredicate addPredicate (PredicateOptions options)
     {
+      value_.push_back (options.initial_value);
+      named_.push_back (false);
+      name_.push_back ("");
+      pub_id_.push_back (0);
+      update_.push_back (options.update);
+      always_run_update_.push_back (options.always_run_update);
+      
+      return value_.size() - 1;
     }
     
     
     
-    inline void
-    PredicateController::
-    name (const string& name)
+    void name (RunningPredicate id, string const& name)
     {
-      named_ = true;
-      name_ = name;
-      id_ = pm_->getNextId();
-      pm_->update_predicate_info_map();
-    }
-    
-    
-    
-    
-    inline RunningPredicate::RunningPredicate (PredicateController* pc) :
-      pc_ (pc)
-    {
-    }
-    
-    
-    
-    inline RunningPredicate
-    RunningPredicate::
-    name (const string& name)
-    {
-      pc_->name (name);
-      return *this;
+      named_[id] = true;
+      name_[id] = name;
+      pub_id_[id] = getNextId();
+      
+      // update_predicate_info_map
+      socrob_predicates::PredicateInfoMap::Ptr msg = boost::make_shared<socrob_predicates::PredicateInfoMap>();
+      msg->header.stamp = ros::Time::now();
+      
+      for (std::size_t i = 0; i < value_.size(); ++i) {
+        if (named_[i]) {
+          socrob_predicates::PredicateInfo pi;
+          pi.id = pub_id_[i];
+          pi.name = name_[i];
+          ROS_DEBUG_STREAM ("update_predicate_info_map: Adding \"" << pi.name << "\" with id " << pi.id);
+          msg->map.push_back (pi);
+        }
+      }
+      
+      predicate_info_map_pub_.publish (msg);
     }
   }
 }

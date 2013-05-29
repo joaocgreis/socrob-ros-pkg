@@ -13,43 +13,21 @@ using namespace socrob::predicates;
 
 
 
-class PeriodicNegative :
-  public Predicate
+namespace PeriodicNegative
 {
-    PeriodicNegative() {
-    }
-    
-    bool update() {
-      return true;
-    }
-    
-  public:
+  bool update()
+  {
+    return true;
+  }
   
-    static RunningPredicate
-    build (PredicateManager* pm) {
-      PeriodicNegative* instance = new PeriodicNegative();
-      PredicateOptions options;
-      options.p = instance;
-      options.initial_value = false;
-      options.update = boost::bind (&PeriodicNegative::update, instance);
-      options.always_run_update = true;
-      return pm->add (options);
-    }
-};
-
-
-
-class PredicateTester :
-  private PredicateManager
-{
-  public:
-    PredicateTester() {
-      /*RunningPredicate peiodicNegative =*/ PeriodicNegative::build (this).name ("PeiodicNegative");
-      /*
-      peiodicNegative->event_rise ("BallOurSide");
-      peiodicNegative->event_fall ("BallTheirSide");
-      */
-    }
+  RunningPredicate build ()
+  {
+    PredicateOptions options;
+    options.initial_value = false;
+    options.update = update;
+    options.always_run_update = true;
+    return addPredicate (options);
+  }
 };
 
 
@@ -59,12 +37,19 @@ main (int argc,
       char* argv[])
 {
   ros::init (argc, argv, "test_all");
-  
   TestTopicGenerator ttg;
   
-  PredicateTester pt;
+  ros::NodeHandle nh;
+  init (nh);
+  
+  RunningPredicate periodicNegative = PeriodicNegative::build();
+  name (periodicNegative, "PeiodicNegative");
+  
+  /*
+  peiodicNegative->event_rise ("BallOurSide");
+  peiodicNegative->event_fall ("BallTheirSide");
+  */
   
   ros::spin();
-  
   return 0;
 }
