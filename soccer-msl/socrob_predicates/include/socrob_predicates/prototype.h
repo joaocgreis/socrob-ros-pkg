@@ -4,7 +4,12 @@
 #include <string>
 #include <vector>
 
+#include <boost/foreach.hpp>
+#define foreach BOOST_FOREACH
+
 #include <ros/ros.h>
+
+#include <socrob_predicates/PredicateInfoMap.h>
 
 
 
@@ -15,9 +20,9 @@ namespace socrob
     using namespace std;
     
     class Predicate;
-    class PredicateManager;
-    class PredicateController;
-    class RunningPredicate;
+    struct PredicateManager;
+    struct PredicateController;
+    struct RunningPredicate;
     
     
     
@@ -27,38 +32,43 @@ namespace socrob
     
     
     
-    class PredicateManager
-    {
-        ros::NodeHandle nh_;
-        
-        vector<PredicateController*> predicates_;
-        
-      public:
-        PredicateManager();
-        
-        RunningPredicate add (Predicate* p);
+    struct PredicateManager {
+      ros::NodeHandle nh_;
+      ros::Publisher predicate_info_map_pub_;
+      
+      vector<PredicateController*> predicates_;
+      
+      
+      PredicateManager();
+      
+      RunningPredicate add (Predicate* p);
+      
+      void update_predicate_info_map();
     };
     
     
     
-    class PredicateController
-    {
-        Predicate* p_;
-        
-      public:
-        PredicateController (Predicate* p);
+    struct PredicateController {
+      PredicateManager* pm_;
+      Predicate* p_;
+      
+      bool named_;
+      string name_;
+      uint32_t id_;
+      
+      
+      PredicateController (PredicateManager* pm, Predicate* p);
     };
     
     
     
-    class RunningPredicate
-    {
-        PredicateController* pc_;
-        
-      public:
-        RunningPredicate (PredicateController* pc);
-        
-        RunningPredicate name (string const& name);
+    struct RunningPredicate {
+      PredicateController* pc_;
+      
+      
+      RunningPredicate (PredicateController* pc);
+      
+      RunningPredicate name (string const& name);
     };
     
     
@@ -66,8 +76,10 @@ namespace socrob
     inline
     PredicateManager::
     PredicateManager() :
-      nh_()
+      nh_(),
+      predicate_info_map_pub_ (nh_.advertise<socrob_predicates::PredicateInfoMap> ("predicate_info_map", 1, true))
     {
+      ROS_DEBUG_STREAM ("Initializing PredicateManager");
     }
     
     
@@ -76,17 +88,44 @@ namespace socrob
     PredicateManager::
     add (Predicate* p)
     {
-      PredicateController* pc = new PredicateController (p);
+      PredicateController* pc = new PredicateController (this, p);
       predicates_.push_back (pc);
       return RunningPredicate (pc);
     }
     
     
     
+    inline void
+    PredicateManager::
+    update_predicate_info_map()
+    {
+      socrob_predicates::PredicateInfoMap::Ptr msg = boost::make_shared<socrob_predicates::PredicateInfoMap>();
+      msg->header.stamp = ros::Time::now();
+      
+      uint32_t id = 0;
+      foreach (PredicateController * pc, predicates_) {
+        if (pc->named_) {
+          socrob_predicates::PredicateInfo pi;
+          pi.id = pc->id_ = id++;
+          pi.name = pc->name_;
+          ROS_DEBUG_STREAM ("update_predicate_info_map: Adding \"" << pi.name << "\" with id " << pi.id);
+          msg->map.push_back (pi);
+        }
+      }
+      
+      predicate_info_map_pub_.publish (msg);
+    }
+    
+    
+    
     inline
     PredicateController::
-    PredicateController (Predicate* p) :
-      p_ (p)
+    PredicateController (PredicateManager* pm, Predicate* p) :
+      pm_ (pm),
+      p_ (p),
+      named_ (false),
+      name_(),
+      id_()
     {
     }
     
@@ -103,6 +142,9 @@ namespace socrob
     RunningPredicate::
     name (const string& name)
     {
+      pc_->named_ = true;
+      pc_->name_ = name;
+      pc_->pm_->update_predicate_info_map();
       return *this;
     }
   }
