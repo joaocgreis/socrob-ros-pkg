@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include <boost/function.hpp>
 #include <boost/foreach.hpp>
 #define foreach BOOST_FOREACH
 
@@ -21,6 +22,7 @@ namespace socrob
     
     class Predicate;
     struct PredicateManager;
+    struct SubscriberOptions;
     struct PredicateOptions;
     struct PredicateController;
     struct RunningPredicate;
@@ -50,9 +52,25 @@ namespace socrob
     };
     
     
+    struct CallbackOptionsBase {};
+    
+    struct SubscriberOptionsBase {};
+    template<typename TYPE>
+    struct SubscriberOptions:
+      public SubscriberOptionsBase {
+      string topic_name;
+      bool force_update;
+      vector<CallbackOptionsBase*> callbacks_;
+    };
     
     struct PredicateOptions {
       Predicate* p;
+      bool initial_value;
+      
+      boost::function<bool() > update;
+      bool always_run_update;
+      
+      vector<SubscriberOptionsBase*> subscriptions;
     };
     
     

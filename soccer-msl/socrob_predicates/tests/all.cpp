@@ -1,3 +1,5 @@
+#include <boost/bind.hpp>
+
 #include <ros/ros.h>
 
 #include <socrob/predicates.h>
@@ -17,12 +19,18 @@ class PeriodicNegative :
     PeriodicNegative() {
     }
     
+    bool update() {
+      return true;
+    }
+    
   public:
   
     static RunningPredicate
     build (PredicateManager* pm) {
       PredicateOptions options;
       options.p = new PeriodicNegative();
+      options.initial_value = false;
+      options.update = boost::bind (&PeriodicNegative::update, options.p);
       return pm->add (options);
     }
 };
