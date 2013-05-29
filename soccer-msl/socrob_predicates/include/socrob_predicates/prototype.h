@@ -22,8 +22,6 @@ namespace socrob
     
     class Predicate;
     struct PredicateManager;
-    struct SubscriberOptions;
-    struct PredicateOptions;
     struct PredicateController;
     struct RunningPredicate;
     
@@ -79,10 +77,14 @@ namespace socrob
       PredicateManager* pm_;
       Predicate* p_;
       
+      bool value_;
+      
       bool named_;
       string name_;
       uint32_t id_;
       
+      boost::function<bool() > update;
+      bool always_run_update;
       
       PredicateController (PredicateManager* pm, Predicate* p);
       
@@ -119,6 +121,9 @@ namespace socrob
     add (PredicateOptions options)
     {
       PredicateController* pc = new PredicateController (this, options.p);
+      pc->value_ = options.initial_value;
+      pc->update = options.update;
+      pc->always_run_update = options.always_run_update;
       predicates_.push_back (pc);
       return RunningPredicate (pc);
     }

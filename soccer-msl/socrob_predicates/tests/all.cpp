@@ -27,10 +27,12 @@ class PeriodicNegative :
   
     static RunningPredicate
     build (PredicateManager* pm) {
+      PeriodicNegative* instance = new PeriodicNegative();
       PredicateOptions options;
-      options.p = new PeriodicNegative();
+      options.p = instance;
       options.initial_value = false;
-      options.update = boost::bind (&PeriodicNegative::update, options.p);
+      options.update = boost::bind (&PeriodicNegative::update, instance);
+      options.always_run_update = true;
       return pm->add (options);
     }
 };
